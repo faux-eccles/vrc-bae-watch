@@ -23,12 +23,12 @@ In order to call the API and query for freinds we needs to authenticate our requ
 The script makes use of the argparse module so includes a `--help` flag to provide detailed argument definitions. 
 -- --
 Run the script continuously checking every minute for changes and posting updates to discord
-```python3
+```bash
 python3 vrc-watch.py -a "<api_key>" -A "<auth_token>" -D "<discord webhoook url>" -w
 ```
 -- --
 To gather a onetime list online users
-```python3 
+```bash 
 python3 vrc-watch.py -a "<api_key>" -A "<auth_token>"
 ```
 -- --
