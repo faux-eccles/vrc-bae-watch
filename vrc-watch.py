@@ -36,13 +36,22 @@ status_colour = {
 
 def build_embed(friend, active):
     colour =  status_colour[friend['status_type']]
-
-    present = (status_map[friend['status']] if friend['status'] in status_map else friend['status']) if friend['status_type'] == 'online' else ':desktop:'
-
+    
+    if friend['status_type'] == 'active':
+        present = ':desktop:'
+    elif friend['status_type'] == 'offline':
+        present = ":black_circle:"
+    elif friend['status'] in status_map:
+        present = status_map[friend['status']]
+    else:
+        present = friend['status']
+    
     location = friend['location']
     if 'nonce' in location:
         parts = location.split(':')
         location = f"https://vrchat.com/home/launch?worldId={parts[0]}&instanceId={parts[1]}"
+    elif friend['status_type'] == 'active':
+        location = 'website'
 
     thumbnail = None if friend['currentAvatarImageUrl'] == '' else f"{friend['currentAvatarImageUrl']}"
 
@@ -114,6 +123,7 @@ def main():
         for friendKey in known_friends_online:
             if friendKey in offline_friends:
                 friend = known_friends.pop(friendKey)
+                friend['status_type'] = 'offline'
                 print(f"User went offline: {friend['username']}")
                 embeds.append(build_embed(friend, False))
         
