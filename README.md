@@ -1,5 +1,7 @@
 # vrc-bae-watch
-Meme project to track VRC friend activity.  Effectively provides no real functionality over just using the website
+Meme project to track VRC friend activity.  Effectively provides no real functionality over just using the website. 
+* Only tracks if they're online
+* Doesn't track status change or world changes 
 
 ## Disclaimer 
 This program violates VRC TOS, and probably shouldn't be used with any account you value.
