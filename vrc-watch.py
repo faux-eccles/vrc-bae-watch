@@ -69,7 +69,7 @@ def main():
     parser = argparse.ArgumentParser("Attempts to watch the VRC friends API for updates")
     parser.add_argument('-a', help='API Key retrieved from website session cookies', required=True, type=str, dest='api_key')
     parser.add_argument('-A', help='API auth token retrieved from website session cookies', required=True, type=str, dest='auth_token') 
-    parser.add_argument('-w', help='API auth token retrieved from website session cookies', required=False, default=False, action='store_true', dest='watch') 
+    parser.add_argument('-w', help='Don\'t exit after first run, keep checking every 1 minute only producing changes between runs', required=False, default=False, action='store_true', dest='watch') 
     parser.add_argument('-D', help='Discord webhook URL for sharing updates', required=False, type=str, default=None, dest='webhook')
 
     args = parser.parse_args()
