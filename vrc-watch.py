@@ -30,8 +30,8 @@ status_map = {
 
 status_colour = {
     'online': 0x00AA00,
-    'active': 0x113311,
-    'offline': 0xAA0000
+    'active': 0x116611,
+    'offline': 0x000000
 }
 
 def build_embed(friend, active):
@@ -52,6 +52,8 @@ def build_embed(friend, active):
         location = f"https://vrchat.com/home/launch?worldId={parts[0]}&instanceId={parts[1]}"
     elif friend['status_type'] == 'active':
         location = 'website'
+    elif friend['status_type'] == 'offline':
+        location = 'offline'
 
     thumbnail = None if friend['currentAvatarImageUrl'] == '' else f"{friend['currentAvatarImageUrl']}"
 
