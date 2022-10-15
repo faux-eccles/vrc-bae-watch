@@ -3,28 +3,41 @@ import argparse
 from time import sleep
 import dateutil.parser
 
-def get_friends(api_key, auth_token):
 
-    headers = {
-        "accept": "application/json",
-        "cookie": f"apiKey={api_key}; auth={auth_token}; ",
-        "User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0'
-    }
+class VRC:
+    def __init__(self, api_key, auth_token):
+        self.headers = {
+            "accept": "application/json",
+            "cookie": f"apiKey={api_key}; auth={auth_token}; ",
+            "User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0'
+        }
 
-    resp = requests.get("https://vrchat.com/api/1/auth/user/friends", params={"offline": "false", "n": 50, "offset": 0}, headers=headers)
-    return resp.json()
+    def get_current_user(self):
+        return requests.get("https://vrchat.com/api/1/auth/user", headers=self.headers).json()
+
+
+    def get_friends(self, offline=False, page=0, size=50):
+        offset = page * size
+
+        return requests.get("https://vrchat.com/api/1/auth/user/friends", params={"offline": "false", "n": size, "offset": offset}, headers=self.headers).json()
 
 status_map = {
     'private': ':red_circle:',
     'ask me': ':orange_circle:',
-    'active': ':green_circle:'
+    'active': ':green_circle:',
+    'join me': ':blue_circle:'
 }
 
-def build_embed(friend, online):
-    status = "online" if online else "offline"
-    colour = 0x00AA00 if online else 0xAA0000
+status_colour = {
+    'online': 0x00AA00,
+    'active': 0x113311,
+    'offline': 0xAA0000
+}
 
-    present = status_map[friend['status']] if friend['status'] in status_map else friend['status'] 
+def build_embed(friend, active):
+    colour =  status_colour[friend['status_type']]
+
+    present = (status_map[friend['status']] if friend['status'] in status_map else friend['status']) if friend['status_type'] == 'online' else ':desktop:'
 
     location = friend['location']
     if 'nonce' in location:
@@ -43,7 +56,7 @@ def build_embed(friend, online):
         },
         "fields": [
             { "name": "Status", "value": present, 'inline': True},
-            { "name": "Description", "value": friend['statusDescription'] if len(friend['statusDescription']) > 0 else '<none>', 'inline': True},
+            { "name": "Status Text", "value": friend['statusDescription'] if len(friend['statusDescription']) > 0 else '<none>', 'inline': True},
             { "name": "Location", "value": location},
             { "name": "Last Login", "value": f"<t:{int(dateutil.parser.isoparse(friend['last_login']).timestamp())}:f>" }
         ]
@@ -74,25 +87,35 @@ def main():
 
     args = parser.parse_args()
 
+    vrc = VRC(args.api_key, args.auth_token)
+
     while True:
+        current_user = vrc.get_current_user()
+        active_friends = current_user['activeFriends']
+        online_friends = current_user['onlineFriends']
+        offline_friends = current_user['offlineFriends']
+        
         embeds = []
 
-        friends = get_friends(args.api_key, args.auth_token)
+        friends = vrc.get_friends()
         for f in friends:
-            if f['friendKey'] not in known_friends:
-                print(f"User online: {f['username']}")
-                known_friends[f['friendKey']] = f
-                if args.webhook is not None:
-                    embeds.append(build_embed(f, True))
+            f['status_type'] = 'offline'
+            if f['id'] in online_friends:
+                f['status_type'] = 'online'
+            elif f['id'] in active_friends:
+                f['status_type'] = 'active'
+            
+            if f['id'] not in known_friends or (known_friends[f['id']]['status_type'] != f['status_type']):
+                embeds.append(build_embed(f, True))
 
-        online_friends = [f['friendKey'] for f in friends]
+            known_friends[f['id']] = f                
+
         known_friends_online = [k for k in known_friends.keys()]
         for friendKey in known_friends_online:
-            if friendKey not in online_friends:
+            if friendKey in offline_friends:
                 friend = known_friends.pop(friendKey)
                 print(f"User went offline: {friend['username']}")
-                if args.webhook is not None:
-                    embeds.append(build_embed(friend, False))
+                embeds.append(build_embed(friend, False))
         
         if args.webhook is not None and len(embeds) > 0:
             ping_discord(args.webhook, embeds)
