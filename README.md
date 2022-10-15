@@ -3,6 +3,8 @@ Meme project to track VRC friend activity.  Effectively provides no real functio
 * Only tracks if they're online
 * Doesn't track status change or world changes 
 
+![Screen shot of discord images display and online user, website active user, and offline user](/img/vrc-bae-watch-example-1.png)
+
 ## Disclaimer 
 This program violates VRC TOS, and probably shouldn't be used with any account you value.
 If you're going to run it, it's recommended to create a new throw away account, though there is no guarantee it'll protect your primary account.  
