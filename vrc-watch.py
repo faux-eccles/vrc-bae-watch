@@ -30,14 +30,18 @@ status_map = {
 
 status_colour = {
     'online': 0x00AA00,
-    'active': 0x116611,
+    'web': 0x116611,
     'offline': 0x000000
 }
+
+def print_status(friend):
+    print(f"{friend['displayName']} - {friend['status_type']} - {friend['status']} - {friend['statusDescription']}")
+
 
 def build_embed(friend, active):
     colour =  status_colour[friend['status_type']]
     
-    if friend['status_type'] == 'active':
+    if friend['status_type'] == 'web':
         present = ':desktop:'
     elif friend['status_type'] == 'offline':
         present = ":black_circle:"
@@ -50,7 +54,7 @@ def build_embed(friend, active):
     if 'nonce' in location:
         parts = location.split(':')
         location = f"https://vrchat.com/home/launch?worldId={parts[0]}&instanceId={parts[1]}"
-    elif friend['status_type'] == 'active':
+    elif friend['status_type'] == 'web':
         location = 'website'
     elif friend['status_type'] == 'offline':
         location = 'offline'
@@ -114,10 +118,11 @@ def main():
             if f['id'] in online_friends:
                 f['status_type'] = 'online'
             elif f['id'] in active_friends:
-                f['status_type'] = 'active'
+                f['status_type'] = 'web'
             
             if f['id'] not in known_friends or (known_friends[f['id']]['status_type'] != f['status_type']):
                 embeds.append(build_embed(f, True))
+                print_status(f)
 
             known_friends[f['id']] = f                
 
@@ -126,8 +131,8 @@ def main():
             if friendKey in offline_friends:
                 friend = known_friends.pop(friendKey)
                 friend['status_type'] = 'offline'
-                print(f"User went offline: {friend['username']}")
                 embeds.append(build_embed(friend, False))
+                print_status(friend)
         
         if args.webhook is not None and len(embeds) > 0:
             ping_discord(args.webhook, embeds)
